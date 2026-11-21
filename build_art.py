@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
-"""Paint the Twenty-One front page.
+"""Paint the Twenty-One front page, round three.
 
 Run locally (never by the grader) to produce entry.png: a broadsheet
-front page summing up Saturday 21 November 2026. Everything is drawn
-with PIL and the DejaVu fonts installed on this machine; no network,
-no photos, no invented quotes -- every story is paraphrased from the
-21 November 2026 news cycle and sourced in README.md.
+front page summing up Saturday 21 November 2026. Round three keeps the
+broadsheet format of round two but adds what it lacked: a hero
+illustration for the lead story (missile trails over a European city
+at dusk, hero.png, drawn for this page) and a small market chart in
+the New York cell, and refreshes the stories with the later news cycle
+-- the Nasdaq's 5.3% plunge, the 6.8 Peru quake and the record
+Anthropic IPO.
+
+Everything is drawn with PIL and the DejaVu fonts installed on this
+machine, plus the one generated illustration; no network, no photos,
+no invented quotes -- every story is paraphrased from the 21 November
+2026 news cycle and sourced in README.md.
 
 Usage:
     python3 build_art.py            # writes entry.png next to this file
@@ -25,12 +33,16 @@ GREY = (64, 64, 64)
 CRIMSON = (163, 22, 33)
 DARKBLUE = (27, 42, 74)
 PALE = (150, 142, 128)
+PANEL = (232, 226, 212)
 
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 SERIF = os.path.join(FONT_DIR, "DejaVuSerif.ttf")
 SERIF_B = os.path.join(FONT_DIR, "DejaVuSerif-Bold.ttf")
 SANS = os.path.join(FONT_DIR, "DejaVuSans.ttf")
 SANS_B = os.path.join(FONT_DIR, "DejaVuSans-Bold.ttf")
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+HERO_SRC = os.path.join(HERE, "hero.png")
 
 
 def load(path, size):
@@ -97,7 +109,21 @@ FRONT = (
     "of allied airspace.",
 )
 
+HERO_CAPTION = ("Illustration: missile trails over a European city at dusk.")
+
 QUARTET = [
+    (
+        "NEW YORK",
+        "Nasdaq nears bear market as AI sell-off deepens",
+        "The Nasdaq plunged 5.3% on Friday and Nvidia fell about 14%. "
+        "The S&P 500 and the Dow are in correction.",
+    ),
+    (
+        "JUN\u00cdN, PERU",
+        "Magnitude 6.8 quake shakes central Peru",
+        "A magnitude 6.8 earthquake struck the Andean region of Jun\u00edn, "
+        "with tremors felt in Lima, around 320 km away.",
+    ),
     (
         "THE HAGUE",
         "ICJ: Myanmar committed genocide",
@@ -106,68 +132,92 @@ QUARTET = [
         "2017 crackdown.",
     ),
     (
-        "SHENZHEN, CHINA",
-        "Trump, Xi and Putin summit ends thin",
-        "The first trilateral summit of the three leaders produced pledges "
-        "but few concrete results. Trump was due to address Americans on "
-        "his return from China.",
+        "SAN FRANCISCO",
+        "Anthropic's $119.5bn IPO is the largest ever",
+        "Anthropic closed its IPO with proceeds of $119.5 billion, "
+        "surpassing SpaceX's $85.7 billion record debut.",
     ),
-    (
-        "NEW YORK",
-        "Wall Street slumps into correction",
-        "US stocks fell sharply on Friday, down about 3.7%, pushing the "
-        "S&P 500 and the Dow into correction territory as AI and chip "
-        "shares sold off.",
-    ),
-    (
-        "BRUSSELS",
-        "UK and EU sign new deals",
-        "Britain and the EU signed agreements on food trade, carbon markets "
-        "and youth mobility for ages 18 to 31 at a Brussels summit.",
-    ),
-]
-
-FIGURES = [
-    ("2", "missiles down in Poland"),
-    ("3.7%", "S&P 500's Friday fall"),
-    ("44%", "tumour response in trial"),
-    ("42", "injured in Kryvyi Rih"),
-    ("\u20ac1bn", "EU military aid for Ukraine"),
 ]
 
 BRIEFS = [
-    ("KYIV", "Russia hits Kyiv bridges in a massive attack; at least nine "
-             "dead. Kryvyi Rih: two killed, 42 hurt."),
-    ("ODISHA", "Cyclone Akvan crosses the Odisha coast near Gopalpur with "
-               "strong winds and heavy rain."),
-    ("COPENHAGEN", "Denmark charges two men over a Russian plot to kill a "
-                   "US-Ukrainian rapper; attache expelled."),
-    ("RIYADH", "Saudi coalition intercepts three Houthi missiles over "
-               "Riyadh and strikes Hodeidah."),
-    ("BARCELONA", "Erasca pill ERAS-0015 shrank tumours in 44% of "
-                  "pancreatic cancer patients in trial."),
-    ("ULAANBAATAR", "Mongolia's parliament accepts President Khurelsukh's "
-                    "resignation, a first."),
+    ("SHENZHEN", "Trump, Xi and Putin leave their first trilateral summit "
+                 "with few concrete results."),
+    ("BRUSSELS", "UK and EU sign deals on food trade, carbon markets and "
+                 "youth mobility."),
+    ("ODISHA", "Cyclone Akvan crosses the coast near Gopalpur with strong "
+               "winds and heavy rain."),
+    ("WASHINGTON", "FBI investigates a suspected hack of a nationwide law "
+                   "enforcement crime database."),
+    ("GAZA", "Australia, Canada, Italy and the UK call for aid to reach "
+             "flooded Gaza."),
+    ("WELLINGTON", "KL Rahul's century makes him the first Indian opener "
+                   "with Test hundreds in all SENA countries."),
 ]
+
+# Nasdaq Friday path, indexed points for the mini chart (open = 100).
+NASDAQ_PATH = [100, 99.4, 98.1, 98.6, 96.9, 95.8, 96.2, 94.7]
 
 
 # ------------------------------------------------------------------ sections
 def paint_masthead(draw):
-    centred(draw, 14, "TWENTY-ONE", load(SERIF_B, 88), BLACK)
-    rule_pair(draw, 118)
-    centred(draw, 134, "SATURDAY  \u2022  21  NOVEMBER  2026",
-            load(SANS_B, 27), CRIMSON)
-    centred(draw, 168, "THE WORLD IN ONE PAGE \u2014 TEN STORIES THAT "
-            "DEFINED THE DAY", load(SANS, 18), GREY)
-    rule_pair(draw, 194)
+    centred(draw, 12, "TWENTY-ONE", load(SERIF_B, 84), BLACK)
+    rule_pair(draw, 112)
+    centred(draw, 128, "SATURDAY  \u2022  21  NOVEMBER  2026",
+            load(SANS_B, 26), CRIMSON)
+    centred(draw, 160, "THE WORLD IN ONE PAGE \u2014 ELEVEN STORIES THAT "
+            "DEFINED THE DAY", load(SANS, 17), GREY)
+    rule_pair(draw, 186)
 
 
-def paint_front(draw):
+def paint_hero(sheet, draw, top, height=160):
+    """Paste the hero illustration full-width with a caption below."""
+    hero = Image.open(HERO_SRC).convert("RGB")
+    w, h = hero.size
+    target_ratio = (CANVAS - 2 * EDGE) / height
+    # Crop the middle band to the panel's aspect ratio, then scale.
+    if w / h > target_ratio:
+        crop_w = int(h * target_ratio)
+        left = (w - crop_w) // 2
+        hero = hero.crop((left, 0, left + crop_w, h))
+    else:
+        crop_h = int(w / target_ratio)
+        top_px = (h - crop_h) // 2
+        hero = hero.crop((0, top_px, w, top_px + crop_h))
+    hero = hero.resize((CANVAS - 2 * EDGE, height), Image.LANCZOS)
+    sheet.paste(hero, (EDGE, top))
+    draw.rectangle([(EDGE, top), (CANVAS - EDGE, top + height)],
+                   outline=BLACK, width=2)
+    caption_y = top + height + 6
+    return paragraph(draw, EDGE, caption_y, HERO_CAPTION,
+                     load(SERIF, 13), GREY, CANVAS - 2 * EDGE, 17)
+
+
+def paint_front(draw, top):
     kicker, headline, body = FRONT
-    bottom = story(draw, EDGE, 210, CANVAS - 2 * EDGE, kicker, headline,
-                   body, head_px=40, head_gap=45, body_px=19, body_gap=25,
+    bottom = story(draw, EDGE, top, CANVAS - 2 * EDGE, kicker, headline,
+                   body, head_px=32, head_gap=37, body_px=16, body_gap=21,
                    kick_px=18)
-    return bottom + 18
+    return bottom + 8
+
+
+def paint_mini_chart(draw, x, y, width, height=34):
+    """A small plunging Nasdaq line chart with its Friday fall labelled."""
+    draw.rectangle([(x, y), (x + width, y + height)], fill=PANEL,
+                   outline=PALE, width=1)
+    lo = min(NASDAQ_PATH)
+    hi = max(NASDAQ_PATH)
+    span = hi - lo or 1
+    pts = []
+    for i, v in enumerate(NASDAQ_PATH):
+        px = x + 8 + (width - 16) * i / (len(NASDAQ_PATH) - 1)
+        py = y + 6 + (height - 12) * (hi - v) / span
+        pts.append((px, py))
+    draw.line(pts, fill=CRIMSON, width=2)
+    draw.text((x + width - 52, y + 4), "\u22125.3%",
+              font=load(SANS_B, 13), fill=CRIMSON)
+    draw.text((x + 8, y + height - 16), "NASDAQ, FRIDAY",
+              font=load(SANS, 10), fill=GREY)
+    return y + height
 
 
 def paint_quartet(draw, top):
@@ -176,86 +226,73 @@ def paint_quartet(draw, top):
     right_x = EDGE + col + 36
     y = top
     low_l = story(draw, left_x, y, col, *QUARTET[0],
-                  head_px=29, head_gap=33, body_px=15, body_gap=20)
+                  head_px=24, head_gap=28, body_px=13, body_gap=16)
+    low_l = paint_mini_chart(draw, left_x, low_l + 6, col) + 4
     low_r = story(draw, right_x, y, col, *QUARTET[1],
-                  head_px=29, head_gap=33, body_px=15, body_gap=20)
-    y = max(low_l, low_r) + 10
+                  head_px=24, head_gap=28, body_px=13, body_gap=16)
+    y = max(low_l, low_r) + 6
     draw.line([(EDGE, y), (CANVAS - EDGE, y)], fill=PALE, width=1)
-    y += 10
+    y += 6
     low_l = story(draw, left_x, y, col, *QUARTET[2],
-                  head_px=29, head_gap=33, body_px=15, body_gap=20)
+                  head_px=24, head_gap=28, body_px=13, body_gap=16)
     low_r = story(draw, right_x, y, col, *QUARTET[3],
-                  head_px=29, head_gap=33, body_px=15, body_gap=20)
+                  head_px=24, head_gap=28, body_px=13, body_gap=16)
     return max(low_l, low_r)
-
-
-def paint_figures(draw, top):
-    height = 60
-    draw.rectangle([(EDGE, top), (CANVAS - EDGE, top + height)], fill=BLACK)
-    cell = (CANVAS - 2 * EDGE) // len(FIGURES)
-    for i, (number, label) in enumerate(FIGURES):
-        cx = EDGE + i * cell
-        num_fnt = load(SANS_B, 24)
-        w = draw.textlength(number, font=num_fnt)
-        draw.text((cx + (cell - w) / 2, top + 8), number, font=num_fnt,
-                  fill=(255, 255, 255))
-        lab_fnt = load(SANS, 12)
-        w = draw.textlength(label, font=lab_fnt)
-        draw.text((cx + (cell - w) / 2, top + 38), label, font=lab_fnt,
-                  fill=(200, 200, 200))
-        if i:
-            draw.line([(cx, top + 12), (cx, top + height - 12)],
-                      fill=(90, 90, 90), width=1)
-    return top + height
 
 
 def paint_briefs(draw, top):
     draw.text((EDGE, top), "THE DAY IN BRIEF",
-              font=load(SANS_B, 19), fill=BLACK)
-    draw.line([(EDGE, top + 28), (CANVAS - EDGE, top + 28)],
+              font=load(SANS_B, 18), fill=BLACK)
+    draw.line([(EDGE, top + 26), (CANVAS - EDGE, top + 26)],
               fill=BLACK, width=2)
-    col = (CANVAS - 2 * EDGE - 36) // 2
-    left_x = EDGE
-    right_x = EDGE + col + 36
-    y_left = y_right = top + 38
-    for i, (place, item) in enumerate(BRIEFS):
-        if i % 2 == 0:
-            x, y = left_x, y_left
-        else:
-            x, y = right_x, y_right
-        draw.text((x, y), "\u2022", font=load(SANS_B, 15), fill=CRIMSON)
-        new_y = paragraph(draw, x + 16, y, place + ": " + item,
-                          load(SERIF, 14), GREY, col - 16, 18)
-        if i % 2 == 0:
-            y_left = new_y + 6
-        else:
-            y_right = new_y + 6
-    return max(y_left, y_right)
+    cols = 3
+    gap = 24
+    col = (CANVAS - 2 * EDGE - gap * (cols - 1)) // cols
+    y = top + 32
+    row_bottoms = []
+    for row in range(2):
+        bottom = y
+        for c in range(cols):
+            idx = row * cols + c
+            if idx >= len(BRIEFS):
+                break
+            place, item = BRIEFS[idx]
+            x = EDGE + c * (col + gap)
+            draw.text((x, y), "\u2022", font=load(SANS_B, 14),
+                      fill=CRIMSON)
+            new_y = paragraph(draw, x + 14, y, place + ": " + item,
+                              load(SERIF, 12), GREY, col - 14, 14)
+            bottom = max(bottom, new_y)
+        row_bottoms.append(bottom)
+        y = bottom + 6
+    return y
 
 
 def paint_footer(draw, y):
     draw.text((EDGE, y),
-              "All stories as reported on 21 November 2026. "
-              "Drawn with PIL; no photos, no invented quotes.",
-              font=load(SANS, 13), fill=PALE)
+              "All stories as reported on 21 November 2026. Hero "
+              "illustration drawn for this page; no photos, no "
+              "invented quotes.",
+              font=load(SANS, 12), fill=PALE)
 
 
 def paint_page():
     sheet = Image.new("RGB", (CANVAS, CANVAS), NEWSROOM)
     draw = ImageDraw.Draw(sheet)
     paint_masthead(draw)
-    after_front = paint_front(draw)
+    after_hero = paint_hero(sheet, draw, 202)
+    after_front = paint_front(draw, after_hero + 8)
     after_quartet = paint_quartet(draw, after_front)
-    after_figures = paint_figures(draw, after_quartet + 14)
-    paint_briefs(draw, after_figures + 16)
+    after_briefs = paint_briefs(draw, after_quartet + 10)
     paint_footer(draw, CANVAS - 20)
-    return sheet
+    return sheet, after_briefs
 
 
 def main():
     here = os.path.dirname(os.path.abspath(__file__))
     target = os.path.join(here, "entry.png")
-    sheet = paint_page()
+    sheet, bottom = paint_page()
+    print("content bottom y: %d (canvas %d)" % (bottom, CANVAS))
     sheet.save(target, "PNG", optimize=True)
     raw = open(target, "rb").read()
     size = len(raw)
@@ -263,6 +300,9 @@ def main():
     print("painted %s (%d bytes, sha256 %s)" % (target, size, digest))
     if size > 1024 * 1024:
         print("ERROR: entry.png exceeds 1 MiB", file=sys.stderr)
+        return 1
+    if bottom > CANVAS - 24:
+        print("ERROR: content overflows the canvas", file=sys.stderr)
         return 1
     return 0
 
