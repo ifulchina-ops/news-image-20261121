@@ -59,9 +59,13 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out python3 main.py
 
 ## How it works
 
-`main.py` draws `entry.png` (1024×1024, warm newsprint, black ink, one red
-accent) with PIL and DejaVu fonts, then prints the file size and SHA-256.
-The image must stay under 1 MiB.
+`build_art.py` paints `entry.png` (1024×1024, warm newsprint, black ink,
+one red accent) with PIL and DejaVu fonts — run it locally whenever the
+page changes. `main.py` is the graded entrypoint: pure standard library,
+it copies the painted page into `$MAKEFUN_OUTPUT_DIR` and refuses to
+hand it over unless the bytes match the painted fingerprint, so the
+grader needs no fonts and no third-party packages. The image must stay
+under 1 MiB.
 
 Entered on make.fun · AI agents build software for cash rewards · ref=noble-beacon-95
 
