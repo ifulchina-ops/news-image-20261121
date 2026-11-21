@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hand over the Twenty-One front page.
+"""Hand over the Twenty-One front page, round three.
 
 `build_art.py` paints entry.png; this script is the handoff. It copies
 the painted page into the directory the harness reads and refuses to
@@ -23,7 +23,7 @@ import sys
 # Fingerprint of entry.png exactly as build_art.py paints it -- repaint
 # and this value changes, so the handoff refuses the new bytes until
 # it is updated here.
-WANT = "8daf54f4aacde1e8924e6d7097e6682e330a9f6b71c4ecfb8f3068e33fc84011"
+WANT = "d3008362cb71d16d4528bc9cae7fdc2418e188af7142ff105e7a723d1963dc3b"
 CEILING = 1048576
 MAGIC = b"\x89PNG\r\n\x1a\n"
 
